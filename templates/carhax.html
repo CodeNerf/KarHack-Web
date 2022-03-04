@@ -1,0 +1,2364 @@
+{%  extends 'base.html' %}
+{%  block title %}{{ title }}{%  endblock %}
+{%  block content %}
+<br>
+
+    {%  if not folder_to_load %}
+        <div class="container-fluid" id="fileLoader" style="max-width: 90%; margin-right: 15%; margin-left: 5%">
+            <div class="file-explorer">
+                <div class="row filepath-header">
+                    <button class="home-button"><i class="fas fa-home"></i></button>
+                    <button class="back-button" onclick="GoBack()"><i class="fas fa-arrow-alt-circle-left"></i></button>
+                    <span class="filepath-readout" id="filepathReadout">{{ current_path }}</span>
+                    <button class="btn btn-light btn-disabled" style="position: relative; width: 8%; margin-left: 1%" onclick="LoadFolder('')" id="loadFolderButton"><i class="fas fa-download"></i>  Load Folder</button>
+                </div>
+                 <div class="cssload-thecube loading-background" id="fileBrowserLoader">
+                    <div class="cssload-cube cssload-c1"></div>
+                    <div class="cssload-cube cssload-c2"></div>
+                    <div class="cssload-cube cssload-c4"></div>
+                    <div class="cssload-cube cssload-c3"></div>
+                </div>
+                <div class="file-explorer-contained-items" id="FEContained">
+
+                    <div class="row justify-content-start" id="allFileItems">
+                        {% for item in selected_path |sort %}
+                                {%  if "." in item %}
+                                    <div class="col-2 file-icon">
+                                        <i class="fas fa-file fa-3x" style="color: white"></i><br>
+                                        {{ item }}
+                                    </div>
+                                {% else %}
+                                    <div class="col-2 file-icon" id="{{ item }}" ondblclick="GetFolderContents(this)">
+                                        <i class="fas fa-folder fa-3x" style="color: #ad836a"></i><br>
+                                        {{ item }}
+                                    </div>
+                                {%  endif %}
+                        {%  endfor  %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    {%  endif  %}
+
+
+
+    {%  if folder_to_load %}
+
+        <div class="container-fluid" style="max-width: 90%; margin-right: 5%; margin-left: 5%">
+
+            <div class="row flex justify-content-center" id="info-row">
+
+{#            Useful Section#}
+                <div class="col">
+                <h4 style="color: white; text-align: center">Tools / Info</h4>
+
+                    <div class="accordion" id="toolsAccord">
+
+{#                    FREQ ACCORD#}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="freqAccord">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#freqAccordCollapse" aria-expanded="false" aria-controls="freqAccordCollapse">
+                            Frequency Analysis
+                          </button>
+                        </h2>
+                        <div id="freqAccordCollapse" class="accordion-collapse collapse" aria-labelledby="freqAccord" data-bs-parent="#toolsAccord" style="max-height: 800px; overflow-y: scroll">
+                            <div class="accordion-body" >
+                                <div class="row">
+                                    <div class="col">
+                                    Starting Timestamp <input id="freqStartingTimestamp" placeholder="Starting Timestamp to Search" value="0">
+                                    </div>
+                                    <div class="col">
+                                    Ending Timestamp <input id="freqEndingTimestamp" placeholder="Ending Timestamp to Search" value="0">
+                                    </div>
+                                    <div class="col">
+                                        Number of Occurrences<input id="freqNum" type='int' value="" maxlength="2" placeholder="0" style="width: 50%">
+                                    </div>
+                                </div>
+                                <div class="row justify-content-center" style="text-align: center; margin: 10px">
+                                    <div class="col">
+                                        <button class='btn btn-secondary' id="checkFreq" onclick="FreqAnalysis(true)" style="width: 50%">New Check</button>
+                                    </div>
+                                    <div class="col">
+                                        <button disabled class='btn btn-secondary' id="checkNextFreq" onclick="FreqAnalysis(false)" style="width: 50%">Next Search</button>
+                                    </div>
+                                </div>
+                                  <br>
+                                  <div>
+                                     <table id="freqTable" class="table table-striped">
+                                        <thead>
+                                            <tr id="freqHeaders">
+                                                <th>Network</th>
+                                                <th>Arb ID</th>
+                                                <th>Data <sub>* indicates times changed</sub></th>
+                                                <th style="width: 25%">Associated Timestamps</th>
+                                            </tr>
+                                        </thead>
+                                            <tbody id="freqTableBody">
+                                                <tr id="freqArbID">
+                                                    <td id="freqRowNetwork"></td>
+                                                    <td id="freqRowArbID"></td>
+                                                    <td id="freqRowData"></td>
+                                                    <td id="freqRowTS" style="width: 25%"></td>
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                  <div class="row" style="align-content: center !important; text-align: center !important;">
+                                      <div class="col">
+                                          <button type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Only display these Arbs when playback resumes" onclick="EnableFreqIsolate()">Isolate</button>
+                                      </div>
+                                      <div class="col">
+                                        <button type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Highlight these rows but show all Arbs" onclick="EnableFreqHighlight()">Highlight</button>
+                                      </div>
+                                      <div class="col"  data-bs-toggle="tooltip" data-bs-placement="top" title="Timestamp will flash when a change occurs">
+                                           Enable Change Flash <input type="checkbox" id="freqFlashTimestamp" class='video-control-checkbox' style="margin: 10px !important;">
+                                      </div>
+                                      <br><br>
+                                  </div>
+                            </div>
+                        </div>
+                    </div>
+
+{#                    Unique ACCORD#}
+                      <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                            Unique Arbs
+                          </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#toolsAccord">
+                          <div class="accordion-body">
+                           {%  for unique in uniques %}
+                              {%  for log, can in unique.items() %}
+                                <div>
+                                    <h4>{{ log }}</h4>
+                                <br>
+                                        {%  for network, arbs in can.items() %}
+                                            <b>{{ network }}</b> {{ arbs }}
+                                            <hr>
+                                        {%  endfor %}
+                                </div>
+                              {%  endfor %}
+                          {% endfor %}
+                          </div>
+                        </div>
+                      </div>
+
+{#                    SCALED FINDER ACCORD#}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="scaledHeading">
+                          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#scaledAccord" aria-expanded="false" aria-controls="scaledAccord">
+                            Scaled Value Finder
+                          </button>
+                        </h2>
+
+                        <div id="scaledAccord" class="accordion-collapse collapse" aria-labelledby="scaledHeading" data-bs-parent="#toolsAccord">
+                          <div class="accordion-body">
+                              <div class="row">
+                                  <div class="col col-9">
+                                      <div class="input-group">
+                                            <span class="input-group-text" id="scalerValuesLabel">Values To Search For (Comma Separated)</span>
+                                            <input class="form-control" id="scalerValueInput" aria-describedby="scalerValueInputLabel" onchange="CheckForCompletion(true)">
+                                      </div>
+                                  </div>
+                                  <div class="col col-3">
+                                      <div class="form-check form-check-inline">
+                                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="bigEndianSelect" value="big" checked>
+                                          <label class="form-check-label" for="bigEndianSelect">Big Endian</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                          <input class="form-check-input" type="radio" name="inlineRadioOptions" id="littleEndianSelect" value="little">
+                                          <label class="form-check-label" for="littleEndianSelect">Little Endian</label>
+                                        </div>
+                                  </div>
+                              </div>
+                              <br>
+
+                              <div class="row">
+                                  <div class="col col-6">
+                                      <div class="input-group mb-3">
+                                            <span class="input-group-text" id="scalerUnitInputLabel">Unit of Measurement</span>
+                                            <input class="form-control" list="scalerUnitSelect" id="scalerUnitInput" placeholder="Type to search..." aria-describedby="scaleValueInputLabel" onchange="PopulateAllSelects()">
+                                            <datalist id="scalerUnitSelect">
+                                            </datalist>
+                                      </div>
+                                  </div>
+
+                                  <div class="col col-6">
+                                        <div class="input-group mb-3" id="scaleSelectDiv">
+                                            <span class="input-group-text" id="scaleSelectLabel">Select Scale</span>
+                                            <input class="form-control" list="scaleSelectList" id="scaleSelectInput" placeholder="Type to search..." aria-describedby="scaleSelectLabel" onchange="CheckForCompletion(true)">
+                                            <datalist id="scaleSelectList">
+                                            </datalist>
+                                      </div>
+                                  </div>
+                              </div>
+                              <br>
+
+                              <div class="row">
+                                   <div class="col col-6">
+                                        <div class="input-group mb-3" id="offsetSelectDiv">
+                                            <span class="input-group-text" id="offSetSelectLabel">Select Offset</span>
+                                            <input class="form-control" list="offsetSelectList" id="offsetSelectInput" placeholder="Type to search..." aria-describedby="offsetSelectLabel" onchange="CheckForCompletion(true)">
+                                            <datalist id="offsetSelectList">
+                                            </datalist>
+                                      </div>
+                                  </div>
+                                    <div class="col col-6">
+                                        <div class="input-group mb-3" id="widthSelectDiv">
+                                            <span class="input-group-text" id="widthSelectLabel">Select Width</span>
+                                            <input class="form-control" list="widthSelectList" id="widthSelectInput" placeholder="Type to search..." aria-describedby="widthSelectLabel" onchange="CheckForCompletion(false)">
+                                            <datalist id="widthSelectList">
+                                            </datalist>
+                                      </div>
+                                  </div>
+                              </div>
+
+                                 <div class="row">
+                                    <div class="col col-4">
+                                        <div class="form-check form-check-inline">
+                                          <input class="form-check-input" type="radio" name="decimalOptions" id="roundDecimalSelect" value="round" onchange="UpdateDecimalValues()">
+                                          <label class="form-check-label" for="roundDecimalSelect">Round Decimal (nearest int)</label>
+                                        </div>
+                                    </div>
+
+                                     <div class="col col-4">
+                                        <div class="form-check form-check-inline">
+                                          <input class="form-check-input" type="radio" name="decimalOptions" id="dropDecimalSelect" value="drop" onchange="UpdateDecimalValues()">
+                                          <label class="form-check-label" for="dropDecimalSelect">Drop Decimal</label>
+                                        </div>
+                                     </div>
+
+                                     <div class="col col-4">
+                                        <div class="form-check form-check-inline">
+                                          <input class="form-check-input" type="radio" name="decimalOptions" id="shiftDecimalSelect" value="shift" onchange="UpdateDecimalValues()">
+                                            <label class="form-check-label" for="shiftDecimalSelect">Shift Decimal <b><span id="decimalShiftAmount">0</span></b> places</label>
+                                        </div>
+                                     </div>
+
+                              </div>
+
+                              <div class="row">
+                                  <div class="col">
+                                      <h5>Values To Run</h5>
+                                      <div id="scaleFinalValues">
+                                          Please Enter Values, Scale, and Offset.
+                                      </div>
+                                  </div>
+                              </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    <button class="btn btn-primary" id='scaleSearchButton' onclick="ExecuteScaleSearch()" style="float: right">Search For Value</button>
+                                </div>
+                            </div>
+
+                              <div class="row">
+                                  <div class="scaleResults" style="max-height: 500px; overflow-y: scroll">
+                                       <table id="scaleTable" class="table table-striped" >
+                                        <thead>
+                                            <tr id="scaleTableHeaders">
+                                                <th>Network</th>
+                                                <th>Arb ID</th>
+                                                <th>Position</th>
+                                                <th>Num. Of Messages</th>
+                                            </tr>
+                                        </thead>
+                                            <tbody id="scaleTableBody" ></tbody>
+                                    </table>
+                                  </div>
+                              </div>
+
+
+
+
+                          </div>
+                        </div>
+                      </div>
+
+{#                  Uppy Downy#}
+{#                      <div class="accordion-item">#}
+{#                        <h2 class="accordion-header" id="uppyHeading">#}
+{#                          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#uppyAccord" aria-expanded="false" aria-controls="uppyAccord">#}
+{#                            Uppy Downy#}
+{#                          </button>#}
+{#                        </h2>#}
+{#                        <div id="uppyAccord" class="accordion-collapse collapse" aria-labelledby="uppyHeading" data-bs-parent="#toolsAccord">#}
+{#                          <div class="accordion-body">#}
+{#                            <button class="btn btn-primary" onclick="CallUppyDowny('start')">Start</button>#}
+{#                              <button class="btn btn-primary" onclick="CallUppyDowny('up')">Uppy</button>#}
+{#                              <button class="btn btn-primary" onclick="CallUppyDowny('same')">Samesies</button>#}
+{#                              <button class="btn btn-primary" onclick="CallUppyDowny('down')">Downy</button>#}
+{#                          </div>#}
+{#                        </div>#}
+{#                      </div>#}
+
+
+                </div>
+            </div>
+
+{#              VIDEO SECTION#}
+                <div class="col" style="margin-right: 10px; margin-left: 10px"  id="actualVideoSection"  onmousedown="ReadyVideoMove()" onmousemove="MoveVideo()" onmouseup="StopVideoMove()">
+                    <div class="row justify-content-center">
+                        <div class="col" style="text-align: center"  >
+                            <h4 style="color: white">Select Video</h4>
+                            <select id="video_selection" onchange="SelectVideo()">
+                                {% for video in all_videos %}
+                                    <option value="{{ video }}">{{ video }}</option>
+                                {%  endfor %}
+                            </select>
+                            <br><br>
+
+                             <div class="video-unique-controls" id="video-unique-controls">
+                                 <button id="videoPopoutButton" onclick="ToggleVideoPopout()"><i class="far fa-window-maximize"></i></button>
+                             </div>
+                            {#   --------ACTUAL VIDE SECTION ----#}
+                        <div id="mp4VideoSection">
+                             <video id="video_player" class=”video-js” data-setup=’{}’ preload style="width: 100%" >
+                                <source id="video_source" src="" type="video/mp4" >
+                             </video>
+
+                            <input type="range" min="0" max="100" value="0" class="video-slider" id="videoSlider" step=0.1 onmousedown="PrepareForChange()" onchange="UpdatePlayback()"><br><br>
+                        </div>
+                                {#  ------ End Actual Video Section ------------#}
+                             <div class="video-markers">
+                                <div class="marker-cone" id="startMarker"></div>
+                                <div class="marker-cone" id="endMarker"></div>
+                            </div>
+                                {#   ------------- Tar Video Section ------- #}
+                        <div id="tarVideoSection">
+                            <div id="tarImageWrapper" class="">
+                                <img src="" id="tarImagePlayback" style="width: 100%; height: auto; pointer-events: none"\>
+                            </div>
+
+                                <input type="range" min="0" max="100" value="0" class="video-slider" id="tarVideoSlider" step=0.1 onmousedown="PrepareForChange()" onchange="UpdatePlayback()"><br><br>
+                        </div>
+
+
+
+                                {#      ------ End Tar Video Section ----------#}
+                            <div class="row">
+                                <div class="col">
+                                     <span style="color: white; margin: 5px; padding: 5px; font-size: 1.25rem">Loop</span> <input class='video-control-checkbox' type="checkbox" id="loopToggle" onchange="SetLooping()" checked>
+                                </div>
+                                <div class="col">
+                                     <span style="color: white; margin: 5px; padding: 5px; font-size: 1.25rem">Clear At End</span> <input class='video-control-checkbox' type="checkbox" id="clearToggle" onchange="SetClearOnEnd()">
+                                </div>
+                            </div>
+
+                            <br><br>
+                            <div class="row justify-content-center">
+                                <div class="col video-control-options" onclick="RotateVideoCW()">
+                                    <i class="fas fa-redo fa-2x" ></i>
+                                </div>
+                                <div class="col">
+                                    <button id="togglePlaybackButton" class='video-control-btn' onclick="TogglePlayback()"><i id='togglePlaybackIcon' class="fas fa-play"></i> Play</button>
+                                </div>
+                                <div class="col video-control-options" onclick="RotateVideoCCW()">
+                                    <i class="fas fa-undo fa-2x"></i>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+{#                LOG SECTION#}
+
+                </div>
+
+{#                Log Section#}
+                <div class="col" style="background-color: white">
+                <h4 style="color: white; background-color: #23343f !important; text-align: center; margin-left: -2%; margin-right: -2%">Log View</h4>
+                    <div class="row">
+                           <div class="col">
+                                <span>Choose Log</span>
+                            <br>
+                                <select id="logSelection" onchange="ImportData()">
+                                    {%  for log in all_logs %}
+                                        <option value="{{ log }}">{{ log }}</option>
+                                    {% endfor %}
+                                </select>
+                           <br><br><button class="btn btn-dark highlighting-button" onclick="HideUnchanged()" id="staticValuesButton"><i class="far fa-eye-slash"></i> Static Values: <b>Hidden</b></button>
+                           <div style="margin-top: 10px">
+                                <button class="btn btn-dark highlighting-button" onclick="SuppressHighlighting()" id="suppressHighlightingButton"><i class="fas fa-ban"></i> Suppress Highlighting <b>Off</b></button>
+                           </div>
+
+                            <div style="margin-top: 10px">
+                                <button class="btn btn-dark highlighting-button" onclick="ResetHighlighting()"><i class="fa fa-highlighter"></i> Reset Highlighting</button>
+                            </div>
+                           </div>
+                            <div class="col" style="text-align: center" id="videoOffsetDiv">
+                                <h4>Offset Log</h4>
+                                <span id="logOffsetDisplay">0.0</span> sec <button style="float: right" onclick="ResetLogOffset()">Reset</button>
+
+                                <input type="range" min="-10" max="10" step=".1" value="0" id="logOffsetSlider"
+                                       style="width: 100%" class="video-slider" list="offsetStepList"
+                                       onmousemove="UpdateLogOffset()"
+                                       onmousedown="ReadyLogOffset()"
+                                        onmouseup="FinishLogOffset()">
+
+                                <div id="offsetOverflow" style="display: none">
+                                    Offset Exceeds Log
+                                </div>
+
+
+                            </div>
+                            <div class="col">
+                                <h4 style="text-align: center">Current Playback Timestamp </h4><div style="text-align: center" id="playbackTimestamp">0000000.000000</div>
+                            </div>
+
+                        </div>
+                           <div>
+                               Playback Speed <input type="number" id="playbackSpeed" value="1.0" maxlength="4" style="width: 25%">
+                            </div>
+
+                        <table id="logReader" class="table table-striped">
+                            <thead>
+                                <tr id="headers">
+                                    <th>Network</th>
+                                    <th>Arb ID</th>
+                                    <th>Byte 1</th>
+                                    <th>Byte 2</th>
+                                    <th>Byte 3</th>
+                                    <th>Byte 4</th>
+                                    <th>Byte 5</th>
+                                    <th>Byte 6</th>
+                                    <th>Byte 7</th>
+                                    <th>Byte 8</th>
+                                </tr>
+                            </thead>
+                                <tbody id="tableBody">
+                                    <tr id="arbID">
+                                        <td id="rowNetwork"></td>
+                                        <td id="rowArbID"></td>
+                                        <td id="byte1"></td>
+                                        <td id="byte2"></td>
+                                        <td id="byte3"></td>
+                                        <td id="byte4"></td>
+                                        <td id="byte5"></td>
+                                        <td id="byte6"></td>
+                                        <td id="byte7"></td>
+                                        <td id="byte8"></td>
+                                    </tr>
+                            </tbody>
+                        </table>
+                    </div>
+            <br>
+
+            </div>
+<br><br>
+          {% endif %}
+        <br>
+        <div class="container-fluid" style="max-width: 90%; margin-right: 5%; margin-left: 5%">
+        <div class="carhax-quickjump">
+        <h3 style="text-align: center">Loaded Parameters</h3>
+        <div class="quick-jump-menu">
+
+            <div class="row param-quickjump">
+                {%  for thing in existing %}
+                        {% for key, value in thing.items() %}
+                            {% if 'analysis' not in value %}
+                                <div class="col">
+                                    <a onclick="LoadFolder('{{thing['whole_path']|string}}')">
+                                        <span class="readout-vin-header"><i class="fas fa-car"></i> <u>{{ key }}</u></span><br>
+                                        <span class="readout-vin-header"><i class='fas fa-folder' style='color: #ad836a'></i> {{ value }}</span>
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {%  endfor %}
+                {%  endfor %}
+            </div>
+
+        </div>
+
+
+</div><br></div>
+        </div>
+
+
+
+<br>
+
+
+<div class="container white-bg" style="width: 50%; margin-right: 2%">
+
+</div>
+
+<div style="display: none"><form method="POST" id="loadFolderForm"><input id="folderVin" name="folder_vin" value=""></form></div>
+
+<br><br>
+
+{# ========================================#}
+{# ========= All Context Menus ============#}
+{# ========================================#}
+{#    Main Context Holder#}
+<div id="context-menu">
+
+{#Video Slider#}
+    <div id="slider-context-menu">
+        <div class="context-menu-item" id="start-loop-marker-select" onclick="SetLoopStartLocation()"><i class="fas fa-map-marker"></i> Loop Start</div>
+        <div class="context-menu-item" id="end-loop-marker-select" onclick="SetLoopEndLocation()"><i class="fas fa-map-marker"></i> Loop End</div>
+    </div>
+
+{#Row in Log reader#}
+    <div id="log-line-context-menu">
+        <div class="context-menu-item" id="hide-log-line-select" onclick="HideLogLine()"><i class="far fa-eye-slash"></i> Hide</div>
+        <div class="context-menu-item" id="hide-log-line-select" onclick="ClearHiddenLines()"><i class="fas fa-trash"></i> Clear Hidden</div>
+        <div class="context-menu-item" id="openRowGraph" onclick="OpenRowGraph()"><i class="fas fa-chart-line"></i> Graph Row</div>
+    </div>
+
+{#Quickjump Context Menu#}
+    <div id="quickjump-context-menu">
+        <div class="context-menu-item" id="hide-log-line-select" onclick="RemoveQuickJump()"><i class="fas fa-trash"></i> Remove </div>
+    </div>
+</div>
+
+
+
+
+
+{# ================================ #}
+{# ======= Modals for Tools ======= #}
+{# ================================ #}
+
+{#Loading Screen Modal#}
+<div class="modal fade" id="loadingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="loadingModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background-color: rgba(0,0,0,0); border: none">
+      <div class="modal-body" style="text-align: center;">
+          <h3 style="color: white">Loading</h3>
+          <div class="cssload-thecube">
+            <div class="cssload-cube cssload-c1"></div>
+            <div class="cssload-cube cssload-c2"></div>
+            <div class="cssload-cube cssload-c4"></div>
+            <div class="cssload-cube cssload-c3"></div>
+        </div>
+          <br><br>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# FILE UNPACKING Modal#}
+
+<div class="modal fade" id="fileUnpackingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="fileUnpackingModalLabel" aria-hidden="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background-color: rgba(255,255,255,0.93); border: none">
+      <div class="modal-body" style="text-align: center;">
+          <h3>Unpacking Files</h3>
+          <div class="cssload-thecube">
+            <div class="cssload-cube cssload-c1"></div>
+            <div class="cssload-cube cssload-c2"></div>
+            <div class="cssload-cube cssload-c4"></div>
+            <div class="cssload-cube cssload-c3"></div>
+        </div>
+        <br><br>
+          <div>
+              <h2>
+                  <b id="unpackingReadout"> 0 %</b>
+              </h2>
+          </div>
+          <div id="unpackingTotal">
+              <div id="unpackingProgress">
+              </div>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{#Graphing  Modal#}
+<div class="modal fade" id="graphingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="graphingModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" >
+    <div class="modal-content" style="border: none; width: 100%; height: auto; ">
+      <div class="modal-body" style="text-align: center;">
+           <span style="float: left"><button onclick="GraphClosed()">Close</button></span> <h3>Byte Selection</h3> <span id="graphTimestamp"></span>
+          <span style="float: right">Values Shown<input id="graphValuesShown" type="number" maxlength="4"  value=20 style="width: 30%" onchange="UpdateGraphValuesShown()"> </span>
+          <div id="graphByteSelectionDiv">
+              <span id="graphNetwork" class="graphByteInfoDisplayNetwork">canTEST</span>
+              <span id="graphArb" class="graphByteInfoDisplayArb">AAA</span>
+              <span id="graphByte0" class="graphByteInfoDisplay">00</span>
+              <span id="graphByte1" class="graphByteInfoDisplay">00</span>
+              <span id="graphByte2" class="graphByteInfoDisplay">00</span>
+              <span id="graphByte3" class="graphByteInfoDisplay">00</span>
+              <span id="graphByte4" class="graphByteInfoDisplay">00</span>
+              <span id="graphByte5" class="graphByteInfoDisplay">00</span>
+              <span id="graphByte6" class="graphByteInfoDisplay">00</span>
+              <span id="graphByte7" class="graphByteInfoDisplay">00</span>
+          </div>
+          <div id="graphBitSelectionDiv"></div>
+          <br><br>
+          <div>
+            <canvas id="graphChart"></canvas>
+            </div>
+                <button id="graphTogglePlaybackButton" class='video-control-btn' onclick="TogglePlayback()"> Play / Pause</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{#    HIGH LOW VALUE MODAL #}
+<div class="modal fade" id="highLowModal" tabindex="-1" aria-labelledby="highLowModal" aria-hidden="true">
+    <div class="modal-dialog" >
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="highLowModalLabel">High-Low Search (not done) </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="align-content: center; text-align: center">
+                high low
+
+            </div>
+      </div>
+    </div>
+</div>
+
+    <div class="watermark">
+        CanBusHack Carhax™ ©2022  <br><sub>Version <span id="wm-version">0.5a</span></sub>
+    </div>
+
+
+
+
+    <script>
+    // tar video stuff
+    let tarVideo = false
+    let tarImageList = []
+    let tarImageFolder = ""
+    let tarVideoSection = document.getElementById('tarVideoSection')
+    let tarImagePlayback = document.getElementById('tarImagePlayback')
+    let tarVideoSlider = document.getElementById('tarVideoSlider')
+    let unpacking = false
+
+    let source = new EventSource("/carhax/stream_data")
+    let actualVideoSection = document.getElementById('actualVideoSection')
+    let mp4VideoSection = document.getElementById('mp4VideoSection')
+    let logLoaded = false
+    let pullRate = 100
+    let streamIncrement = 200
+    let streamIndex = 0
+    let streamStart = 0
+    let streamMax = 0
+    let startingTimestamp = 0;
+    let endingTimestamp = 0;
+
+    let logSelection = document.getElementById("logSelection")
+    let logReader = document.getElementById("logReader")
+    let tableBody = document.getElementById("tableBody")
+    let buffering = false
+    let seeking = false
+    let pathSelector = document.getElementById('pathSelector')
+    let filecontainer = document.getElementById('FEContained')
+    let infoRow = document.getElementById('info-row')
+    let playbackTimestamp = document.getElementById('playbackTimestamp')
+    let videoOffset = 0
+    let absoluteTimestamp = 0
+    let videoTimeSlider = document.getElementById('videoSlider')
+    let playbackPaused = true;
+    let streaming = false;
+    let clearOnEnd = false;
+    let restarting = false;
+    let logLength = 0;
+    let rateGate = false;
+    let loopStream = true;
+    let playbackSpeed = 1
+    let suppressHighlighting = false
+    let viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
+
+    let contextMenu = document.getElementById('context-menu')
+
+    {#Slider menu vars #}
+    let startLoopMarkerMenu = document.getElementById('start-loop-marker-select')
+    let endLoopMarkerMenu = document.getElementById('end-loop-marker-select')
+    let loopStartSet = false;
+    let loopEndSet = false;
+    let sliderLoopStartValue = 0
+    let sliderLoopEndValue = 0
+    let startMarker = document.getElementById('startMarker')
+    let endMarker = document.getElementById('endMarker')
+    let loopHiddenArbs = []
+    let loopStartPercent = 0
+    let loopEndPercent = 0
+
+    {#Byte table menu vars#}
+    let ctxTableParentId;
+    let ctxHideRowList = []
+    let ctxQuickJumpNode;
+
+    {#Quickjump context vars#}
+    let ctxParamQuickjumpLoc;
+
+
+    {#Freq Analysis#}
+    let gatheredData;
+    let freqNum = document.getElementById('freqNum')
+    let checkFreqButton = document.getElementById('checkFreq')
+    let freqTableBody = document.getElementById('freqTableBody')
+    let freqIsolateEnabled = false
+    let freqHighlightEnabled = false
+    let freqSelectedArbs = []
+    let freqSelectedTimestamps = []
+    let freqFlashTimestamp = document.getElementById('freqFlashTimestamp')
+
+    {#UnchangedValues Vars#}
+    let ucSelectedArbs = []
+    let ucFilter = false
+
+    {#Log Offset#}
+    let logOffsetSlider = document.getElementById("logOffsetSlider")
+    let logOffsetAmount = 0
+    let logOffsetDisplay = document.getElementById("logOffsetDisplay")
+    let logOffsetChanged = false
+    let logOffsetChanging = false
+    let logOffsetOneTimeUpdate = false
+    let somethingCount = 0
+
+    {# Graph Selected Row #}
+    let graphSelectedRow;
+    let selectedByteTotal = 0;
+    let graphOpen = false
+    let graphSelectedNetwork;
+    let graphSelectedArb;
+    let graphSelectedData = []
+    let graphTimestamp = document.getElementById('graphTimestamp')
+    let graphValuesShown = 20
+
+
+    {#VIDEO POPOUT STUFF#}
+    let videoDocked = true
+    let videoMoveInitiated = false
+
+
+    {#SCALED VALUE FINDER#}
+    let scalersDict = null
+    let scalerList = []
+    let scalerUnitList = document.getElementById('scalerUnitSelect')
+    let scaleValueToSearchList = []
+    let selectedScalerUnit = ""
+    let scaleUnitInput = document.getElementById('scalerUnitInput')
+    let scaleValuesToSearch = document.getElementById('scaleValueInput')
+    let scaleSelectDiv = document.getElementById('scaleSelectDiv')
+    let scaleValuesToReturn = []
+
+
+    $(document).ready(function() {
+        {%  if folder_to_load %}
+            ImportData()
+
+            setTimeout(function(){
+                videoTimeSlider.max = videoPlayer.duration
+            }, 1000)
+            SetAllVars()
+
+            $('#logReader').DataTable({
+                deferRender:    true,
+                scrollY:        infoRow.clientHeight,
+                scrollCollapse: true,
+                scroller:       true,
+                ordering: false,
+                "bDestroy": true,
+                'searching': false,
+                'lengthChange': false,
+            });
+            console.log(videoSelection.value)
+            if({{all_videos|safe}}[0].toString().includes('.tar')){
+               SelectVideo()
+            } else {
+                videoPlayer.load()
+            }
+
+        {%  endif %}
+
+
+        if(pathSelector){
+            if(document.getElementById('pathItems').innerHTML === ""){
+                GetFolderContents()
+            }
+        }
+    } );
+
+    window.onbeforeunload = function(){
+        StopStream()
+    };
+    function ImportData(){
+        if(logSelection){
+            LoadFile(logSelection.value)
+        }
+    }
+
+    function LoadFile(filename){
+
+        $("#loadingModal").modal('show')
+        $('#logReader').DataTable().clear()
+        $.ajax({
+            type: "GET",
+            url: "/carhax/load_initial/" + filename.toString(),
+            contentType: "application/json",
+            success: function(data){
+                logLoaded = true
+                {#console.log("---Ready To View---")#}
+                logLength = parseInt(data['log_length'])
+                endingTimestamp = data['ending_timestamp']
+                starting_timestamp = data['starting_timestamp']
+                console.log(data['starting_timestamp'])
+                sourceDiffs = (logLength - videoPlayer.duration)
+                playbackTimestamp.innerText = data['starting_timestamp']
+                scalerList = Object.keys(data['scalers'])
+                scalersDict = data['scalers']
+                HideUnchanged()
+                PopulateScalersDropdowns()
+                PrePopulateLogReadout(data['full_log'])
+
+                absoluteTimestamp = 0
+                videoTimeSlider.max = videoPlayer.duration
+
+                {#console.log(absoluteTimestamp)#}
+
+                console.log(startingTimestamp)
+
+            }
+        });
+    }
+
+
+
+    function StreamData(){
+        absoluteTimestamp = parseFloat(absoluteTimestamp)
+        logOffsetAmount = parseFloat(logOffsetAmount)
+        {#if(streaming){return}#}
+        // get the initial starting location of the log based on the time diff
+          if(logOffsetAmount !== 0) {
+              absoluteTimestamp += logOffsetAmount
+              document.getElementById('offsetOverflow').style.display = 'none'
+               if(absoluteTimestamp + logOffsetAmount < startingTimestamp) {
+                  document.getElementById('offsetOverflow').style.display = 'block'
+                  absoluteTimestamp -= logOffsetAmount
+               }
+               if(absoluteTimestamp + logOffsetAmount > endingTimestamp) {
+                  document.getElementById('offsetOverflow').style.display = 'block'
+                  absoluteTimestamp -= logOffsetAmount
+               }
+          }
+
+         playbackSpeed = document.getElementById('playbackSpeed').value
+        $.ajax({
+        type: "GET",
+        url: "/carhax/start_stream/" + absoluteTimestamp.toString() + "/" + playbackSpeed.toString(),
+        contentType: "application/json",
+          success: function(data) {
+                console.log('starting intial')
+                streamMax = data.split(",")[0]
+                videoPlayer.playbackRate = 1 * playbackSpeed
+                streaming = true;
+                console.log("end of initial")
+          }
+        })
+}
+
+
+
+    {#-------- STREAMING STUFF ---------------#}
+    let playbackStarted = false
+    let badStatus = ['starting', 'stopping', 'waiting']
+   source.onmessage = function (data) {
+        if(data['data']==='starting'||data['data']==='stopping'){
+            source.close();
+            let onmessage = source.onmessage;
+            source = new EventSource("carhax/stream_data");
+            source.onmessage = onmessage;
+        }
+
+        if(!streaming){return}
+        if(!playbackStarted){
+            console.log('streaming')
+            playbackStarted = true
+            if(!tarVideo){
+                videoPlayer.play()
+            }
+        }
+
+        if (loopStream && streamIndex === parseInt(streamMax)) {
+            console.log("hitting")
+                streaming = false
+                playbackStarted = false
+                if(!tarVideo){videoPlayer.currentTime = 0}
+                streamIndex = 0
+                absoluteTimestamp = 0
+                setTimeout(function(){
+                    RestartDataStream()
+                }, 1000)
+
+
+
+              if (clearOnEnd) {
+                  $("#tableBody").find("tr:gt(0)").remove();
+              }
+              return
+          }
+
+        UpdateStreamingVars()
+
+          somethingCount = 0
+          videoPlayer.onwaiting = function () {
+              buffering = true
+          }
+
+            try{
+                ProcessData(JSON.parse(data['data']))
+            } catch (e) {
+                console.log(e)
+                source.close();
+                let onmessage = source.onmessage;
+                source = new EventSource("carhax/stream_data");
+                source.onmessage = onmessage
+            }
+
+          {#If looping is on and the playback reaches the end#}
+
+          // match the IDX of the end_indx addition in carhax.py
+          {#console.log(somethingCount + "<--- some count")#}
+          streamIndex += 1
+    }
+
+    function UpdateStreamingVars(){
+        videoPlayer.onplaying = function(){buffering = false}
+        if(playbackPaused){return}
+        if(buffering){return}
+
+        // Check for looping between points
+        if(loopStartSet && loopEndSet){
+            if(!tarVideo){
+               if(videoTimeSlider.value >= sliderLoopEndValue){
+                    Pause()
+                    {#console.log("loop start value : " + sliderLoopStartValue)#}
+                    {#console.log("Video Time Slider value : " + videoTimeSlider.value)#}
+                    {#console.log("Slider loop end value : " + sliderLoopEndValue)#}
+                    videoPlayer.currentTime = sliderLoopStartValue
+                    videoTimeSlider.value = sliderLoopStartValue;
+                    GetNewIdx()
+                    return
+                }
+            } else {
+                if(tarVideoSlider.value >= sliderLoopEndValue){
+                    Pause()
+                    tarVideoSlider.value = sliderLoopStartValue
+                    GetNewIdx()
+                    return
+                }
+            }
+
+        }
+
+        if(!tarVideo){
+            videoTimeSlider.value = videoPlayer.currentTime
+        } else {
+            tarVideoSlider.value = ((streamIndex/logLength)* 100).toFixed(1)
+        }
+    }
+
+    function PrePopulateLogReadout(info){
+        for(let i = 0; i < logLength; i++){
+            try{
+                let data = info[i]
+                let arbID = data[2]
+                let thingToCheck = data[1].toString() + "-" + arbID.toString()
+                if(ucSelectedArbs.includes(thingToCheck)){continue}
+                if(!document.getElementById(data[1] + "-" + arbID)){
+                    let row = tableBody.insertRow(0)
+                    let cellNetwork = row.insertCell(0)
+                    let cellArb = row.insertCell(1)
+                    row.id = data[1] + "-" + arbID
+                    cellNetwork.innerText = data[1]
+                    cellArb.innerText = arbID
+                    cellArb.id = data[1] + '-' +  arbID.toString() + '-arb'
+                    cellNetwork.id = data[1] + '-' + arbID.toString() + '-network'
+                    for(var k = 0; k < 8; k++){
+                        let cell = row.insertCell(2 + k)
+                        cell.id =  data[1] + '-' + arbID.toString() + "-byte-" + (k+1).toString()
+                        cell.classList.add("steady-byte-display-l1")
+                        cell.innerText = "--"
+                    }
+                }
+            }  catch {
+                console.log('error on ', i)
+            }
+        }
+
+
+    }
+
+
+    function ProcessData(data){
+            streamIndex = data['current_idx']
+            data = JSON.parse(data['data'])
+            playbackTimestamp.innerText = data[0]
+            let arbID = data[2]
+            let thingToCheck = data[1].toString() + "-" + arbID.toString()
+            if(tarVideo){
+                let tsTrimmed = data[0].replace("(", "").replace(")", "").replace(".", "_") + ".jpg"
+                if(tarImageList.includes(tsTrimmed)){
+                    let imgIndex = tarImageList.indexOf(tsTrimmed)
+                    tarImagePlayback.src = tarImageFolder + "/" + tarImageList[imgIndex]
+                }
+            }
+            if(graphOpen){
+                graphTimestamp.innerText = data[0]
+                ProcessGraph(thingToCheck, data);
+                return
+            }
+            let foundRow = document.getElementById(thingToCheck)
+
+            {#if(rect.bottom < 0 || rect.bottom > viewHeight){return}#}
+
+
+
+
+            if(freqFlashTimestamp.checked){
+                if(freqSelectedTimestamps.includes(data[0])){
+                    FlashTimestamp()
+                }
+            }
+
+            if(freqIsolateEnabled){
+                if(!freqSelectedArbs.includes(thingToCheck)){return}
+            }
+            if(ctxHideRowList.includes(thingToCheck)){return}
+            if(ucSelectedArbs.includes(thingToCheck)){return}
+            if(loopEndSet){
+                if(loopHiddenArbs.includes(thingToCheck)){return}
+            }
+
+            // if row exists make changes
+            let children = foundRow.children
+            let bytes = []
+
+            // get all the byte cols
+            for (var j = 0; j < children.length; j++) {
+                if (children[j].id.includes("byte")) {
+                    bytes.push(children[j])
+                }
+            }
+            // color the changes
+            for (var l = 0; l < bytes.length; l++) {
+
+                let neededDirection = ""
+                let intPrev = parseInt(bytes[l].innerHTML, 16)
+                let intNext = parseInt(data[3][l], 16)
+                if (intNext - intPrev > 0) {
+                    neededDirection = "Greater"
+                } else if (intNext - intPrev < 0) {
+                    neededDirection = "Lesser"
+                }
+
+                if (data[3][l] !== bytes[l].innerHTML) {
+                    if (data[3][l]) {
+                        bytes[l].innerText = data[3][l]
+                    } else {
+                        bytes[l].innerText = ""
+                    }
+
+                    if(suppressHighlighting){
+                        continue
+                    }
+                    let currentClass = bytes[l].className.split("-")[3].split("l")[1]
+                    let nextClassNum = parseInt(currentClass) + 1
+                    if (nextClassNum > 5) {
+                        nextClassNum = 5;
+                    }
+                    if (neededDirection === "Greater") {
+                        if (bytes[l].className.includes("down")) {
+                            nextClassNum = 1;
+                        }
+                        let nextClass = 'up-byte-display-l' + nextClassNum.toString()
+                        bytes[l].removeAttribute('class')
+                        bytes[l].classList.add(nextClass)
+                    } else if (neededDirection === "Lesser") {
+                        if (bytes[l].className.includes("up")) {
+                            nextClassNum = 1;
+                        }
+                        let nextClass = 'down-byte-display-l' + nextClassNum.toString()
+                        bytes[l].removeAttribute('class')
+                        bytes[l].classList.add(nextClass)
+                    }
+                }
+            }
+// END OF LOOP
+    }
+
+    function RestartDataStream(){
+        console.log("Restarting")
+        StreamData()
+        playbackPaused = false
+    }
+
+
+   function SetAllVars(){
+        SetLooping()
+    }
+    function Pause(){
+        if(!tarVideo){
+            videoPlayer.pause()
+        }
+        playbackPaused = true;
+        StopStream();
+    }
+
+    function SetLooping(){
+        if(document.getElementById("loopToggle").checked){
+            loopStream = true;
+        } else {
+            loopStream = false;
+        }
+    }
+
+    function SetVideoElements(){
+        videoTimeSlider.value = videoPlayer.currentTime
+    }
+
+    function UpdatePlayback(){
+        if(!tarVideo){
+            videoPlayer.currentTime = videoTimeSlider.value
+            videoTimeSlider.value = videoPlayer.currentTime
+        }
+        document.getElementById('togglePlaybackButton').innerHTML = "<i id='togglePlaybackIcon' class='fas fa-play'></i> Play"
+    }
+
+    function PrepareForChange(){
+        if(event.button === 0){
+            Pause()
+        }
+    }
+
+    function ResumePlayback(){
+        if(event.button === 0){
+            if(playbackPaused){
+                if(clearOnEnd){$("#tableBody").find("tr:gt(0)").remove();}
+                GetNewIdx()
+           }
+        }
+    }
+
+    function TogglePlayback(){
+
+        playbackButtonGraph = document.getElementById('graphTogglePlaybackButton')
+        playbackButton = document.getElementById('togglePlaybackButton')
+
+
+        playbackButton.classList.add('btn-cbh-disabled')
+        playbackButton.disabled = true;
+        playbackButtonGraph.classList.add('btn-cbh-disabled')
+        playbackButtonGraph.disabled = true;
+        if(playbackPaused){
+            playbackButton.innerHTML = "<i id='togglePlaybackIcon' class='fas fa-pause'></i> Pause"
+            playbackButtonGraph.innerHTML = "<i id='togglePlaybackIcon' class='fas fa-pause'></i> Pause"
+            ResumePlayback()
+        } else {
+            playbackButton.innerHTML = "<i id='togglePlaybackIcon' class='fas fa-play'></i> Play"
+            playbackButtonGraph.innerHTML = "<i id='togglePlaybackIcon' class='fas fa-play'></i> Play"
+            Pause()
+        }
+        setTimeout(function(){
+            playbackButton.disabled = false;
+            playbackButton.classList.remove('btn-cbh-disabled')
+            playbackButtonGraph.disabled = false;
+            playbackButtonGraph.classList.remove('btn-cbh-disabled')
+        }, 750)
+    }
+
+    function ClearOnEnd(){
+        let tickbox = document.getElementById("clearToggle")
+        if(tickbox.checked){
+            clearOnEnd = false;
+        } else {
+            clearOnEnd = true;
+        }
+    }
+
+    function StopStream(){
+        streaming = false
+        playbackStarted = false
+        $.ajax({
+            type: "GET",
+            url: "/carhax/stop_stream",
+            contentType: "application/json",
+            success: function(){}
+        });
+    }
+
+
+    function GetNewIdx(){
+        if(!tarVideo){
+            videoLoc = (videoTimeSlider.value / videoPlayer.duration)
+            console.log("---:" + videoLoc)
+        } else {
+            videoLoc = (tarVideoSlider.value/100)
+            {#absoluteTimestamp = tarImagePlayback.src.toString().replace("http://192.168.7.207:5006/static/analysis/WP1AA2AY0MDA04094/acflapmidflistwert/VIDEO1921681330/", "").replace(".jpg", "").replace('_', '.')#}
+            console.log("Seeking to " + videoLoc)
+        }
+
+        $.ajax({
+            type: "GET",
+            url: "/carhax-get-new-idx/" +  videoLoc.toString(),
+            contentType: "application/json",
+              success: function(data){
+                console.log("Using IDX From File " + data.replace("(", "").replace(")", ""))
+                absoluteTimestamp = data.replace("(", "").replace(")", "")
+                Pause()
+                RestartDataStream()
+              }
+        });
+
+    }
+
+    function DirectLoad(path, data){
+        let allFileItems = document.getElementById('allFileItems')
+        let filepathreadout = document.getElementById("filepathReadout")
+        filepathreadout.innerHTML = path
+        allFileItems.innerHTML = ""
+
+        fpArray = filepathreadout.innerText.split("/")
+        if(fpArray[fpArray.length -2]){
+            console.log(fpArray[fpArray.length -2])
+            if(fpArray[fpArray.length -2].includes('apture')){
+                document.getElementById('loadFolderButton').classList.remove('btn-disabled')
+            } else if(!document.getElementById('loadFolderButton').classList.contains('btn-disabled')) {
+                document.getElementById('loadFolderButton').classList.add('btn-disabled')
+            }
+        }
+          for(var i = 0; i < data.length; i++){
+              let name = data[i].split("/").at(-1)
+              {#allFileItems.innerHTML += "<div class='col'>"#}
+              if(!data[i].includes(".")){
+                  allFileItems.innerHTML += "<div class='col-2 file-icon' id='" + data[i] + "' ondblclick='GetFolderContents(this)'>" +
+                      "<i class='fas fa-folder fa-3x' style='color: #ad836a'></i><br>" + name + "</div>"
+              } else {
+                  allFileItems.innerHTML += "<div class='col-2 file-icon'>" +
+                      "<i class='fas fa-file fa-3x' style='color: white'></i><br>" + name + "</div>"
+              }
+              {#allFileItems.innerHTML += "</div>"#}
+          }
+          document.getElementById('fileBrowserLoader').style.display = 'none'
+    }
+
+    function GoBack(){
+        let current_path = document.getElementById("filepathReadout").innerHTML
+        let previous_path = current_path.split("/")
+        allFileItems.innerHTML = ""
+        previous_path.pop()
+        previous_path = (previous_path.join("/"))
+        document.getElementById('fileBrowserLoader').style.display = 'block'
+
+            $.ajax({
+            type: "POST",
+            url: "/carhax/direct_navigate",
+            contentType: "application/json",
+            data: JSON.stringify({path: previous_path}),
+                success: function(data){
+
+                    DirectLoad(previous_path, data)
+                }
+        });
+    }
+
+
+    function LoadFolder(current_path){
+        console.log(current_path)
+        $("#loadingModal").modal('show')
+        if(current_path === ""){
+            current_path = document.getElementById("filepathReadout").innerHTML
+        }
+          $.ajax({
+            type: "POST",
+            url: "/carhax/load_folder",
+            contentType: "application/json",
+            data: JSON.stringify({path: current_path}),
+              success: function(data){
+                document.getElementById('loadFolderForm').submit()
+
+              }
+        });
+    }
+
+    function Stop(){
+        streamIndex = 0
+        window.clearInterval(window.dataInterval)
+    }
+
+    /// ------------------------------------------- ///
+    /// ------- CUSTOM CONTEXT MENU STUFF --------- ///
+
+    if (document.addEventListener) {
+        document.addEventListener('click', function(e){
+          contextMenu.style.display = 'none'
+        })
+        document.addEventListener('contextmenu', function(e) {
+            GetHoveredElements()
+            e.preventDefault();
+        }, false);
+    } else {
+        document.attachEvent('oncontextmenu', function() {
+            window.event.returnValue = false;
+        });
+    }
+
+
+
+    function GetHoveredElements() {
+        contextMenu.style.display = "none";
+        elements = document.elementsFromPoint(event.clientX, event.clientY);
+        for(var i = 0; i < elements.length; i ++){
+            {#console.log(elements[i].getAttribute('onclick'))#}
+
+            if(elements[i].id.includes('ideoSlider')){
+                CreateSliderContextMenu()
+                return
+            }
+
+            if(elements[i].id.includes('logReader')){
+                ctxTableParentId = (elements[0].parentElement.id)
+
+                for(let k = 0; k < elements.length; k++){
+                    if(elements[k].tagName == 'TD'){
+                        graphSelectedRow = elements[k]
+                    }
+                }
+
+                CreateLogLineContextMenu()
+                return
+            }
+
+            if(elements[i].getAttribute('onclick')){
+                if(elements[i].getAttribute('onclick').includes('LoadFolder')){
+                    ctxQuickJumpNode = elements[i]
+                    ctxParamQuickjumpLoc = elements[i].getAttribute('onclick').replace("LoadFolder('", "").replace("')", "")
+                    CreateQuickJumpContextMenu()
+                    return
+                }
+
+            }
+
+        }
+    }
+
+    function CreateSliderContextMenu(){
+        contextMenu.style.top = event.clientY;
+        contextMenu.style.left = event.clientX;
+        contextMenu.style.display = 'block';
+        document.getElementById("slider-context-menu").style.display = 'block'
+        document.getElementById("log-line-context-menu").style.display = 'none'
+        document.getElementById('quickjump-context-menu').style.display = 'none'
+    }
+
+    function SetLoopStartLocation(){
+        let sliderToChange;
+
+        if(tarVideo){
+            sliderToChange = tarVideoSlider
+        } else{
+           sliderToChange = videoTimeSlider
+        }
+
+        elements = document.elementsFromPoint(event.clientX, event.clientY)
+        let offsetLeft = sliderToChange.offsetLeft
+        let width = sliderToChange.clientWidth;
+        let clickedLoc = parseFloat(contextMenu.style.left.toString().replace("px", ""))
+        let percent = (((clickedLoc - offsetLeft) / width)).toFixed(2)
+        loopStartPercent = parseFloat(percent)
+        startMarker.style.display = 'block';
+        startMarker.style.left = (offsetLeft + (width * (percent-0.01)));
+        startMarker.style.top = sliderToChange.offsetTop - 40;
+        sliderLoopStartValue = (sliderToChange.max * percent)
+        loopStartSet = true
+    }
+
+    function SetLoopEndLocation(){
+        let sliderToChange;
+        if(tarVideo){
+            sliderToChange = tarVideoSlider
+        } else{
+           sliderToChange = videoTimeSlider
+        }
+
+        elements = document.elementsFromPoint(event.clientX, event.clientY)
+        let offsetLeft = sliderToChange.offsetLeft
+        let width = sliderToChange.clientWidth;
+        let clickedLoc = parseFloat(contextMenu.style.left.toString().replace("px", ""))
+        let percent = (((clickedLoc - offsetLeft) / width)).toFixed(2)
+        loopEndPercent = parseFloat(percent)
+        endMarker.style.display = 'block';
+        endMarker.style.left = (offsetLeft + (width * (percent-0.01)));
+        endMarker.style.top = sliderToChange.offsetTop - 40;
+        sliderLoopEndValue = (sliderToChange.max * percent)
+        loopEndSet = true
+
+        {#console.log(sliderLoopStartValue)#}
+        {#console.log(sliderLoopEndValue)#}
+        GetLoopUnchanged()
+    }
+
+
+    function GetLoopUnchanged(){
+        loopHiddenArbs = []
+
+        $.ajax({
+            type: "GET",
+            url: "/carhax/get_unchanged_inloop/" + loopStartPercent.toString() + "/" + loopEndPercent.toString(),
+            contentTye: "application/json",
+            success: function(data){
+                loopHiddenArbs = JSON.parse(data)
+                for(let i = 0; i < loopHiddenArbs.length; i++){
+                    if(document.getElementById(loopHiddenArbs[i])){
+                        document.getElementById(loopHiddenArbs[i]).remove()
+                    }
+                }
+                console.log(loopHiddenArbs)
+            }
+        })
+    }
+
+    function CreateLogLineContextMenu(){
+        contextMenu.style.top = event.clientY;
+        contextMenu.style.left = event.clientX;
+        contextMenu.style.display = 'block';
+        document.getElementById("log-line-context-menu").style.display = 'block'
+        document.getElementById("slider-context-menu").style.display = 'none'
+        document.getElementById('quickjump-context-menu').style.display = 'none'
+    }
+
+    function HideLogLine(){
+        if(ctxTableParentId != "" && ctxTableParentId != null){
+            ctxHideRowList.push(ctxTableParentId)
+            document.getElementById(ctxTableParentId).remove()
+        }
+    }
+
+    function ClearHiddenLines(){
+        ctxHideRowList = []
+    }
+
+    function GetFolderContents(folder){
+        let allFileItems = document.getElementById('allFileItems')
+        let filepathreadout = document.getElementById("filepathReadout")
+        filepathreadout.innerHTML += "/" + folder.id
+        allFileItems.innerHTML = ""
+        fpArray = filepathreadout.innerText.split("/")
+        document.getElementById('fileBrowserLoader').style.display = 'block'
+        $.ajax({
+            type: "GET",
+            url: "/carhax/get_folder_contents/" + folder.id,
+            contentType: "application/json",
+              success: function(data){
+                data.sort()
+                    if(fpArray[fpArray.length -2]){
+                        if(fpArray[fpArray.length -2].includes('apture')){
+                            document.getElementById('loadFolderButton').classList.remove('btn-disabled')
+                        } else if(!document.getElementById('loadFolderButton').classList.contains('btn-disabled')) {
+                            document.getElementById('loadFolderButton').classList.add('btn-disabled')
+                        }
+                    }
+
+                  {#if(filepathreadout.split('/'))#}
+                  for(var i = 0; i < data.length; i++){
+                      let name = data[i].split("/").at(-1)
+                      {#allFileItems.innerHTML += "<div class='col'>"#}
+                      if(!data[i].includes(".")){
+                          allFileItems.innerHTML += "<div class='col-2 file-icon' id='" + name + "' ondblclick='GetFolderContents(this)'>" +
+                              "<i class='fas fa-folder fa-3x' style='color: #ad836a'></i><br>" + name + "</div>"
+                      } else {
+                          allFileItems.innerHTML += "<div class='col-2 file-icon'>" +
+                              "<i class='fas fa-file fa-3x' style='color: white'></i><br>" + name + "</div>"
+                      }
+                      {#allFileItems.innerHTML += "</div>"#}
+                  }
+                  document.getElementById('fileBrowserLoader').style.display = 'none'
+              }
+        });
+    }
+
+    function RotateVideoCW(){
+        if(tarVideo){
+            let tarImageWrapper = document.getElementById('tarImageWrapper')
+            if(!tarImageWrapper.classList.toString().includes('rotated')){
+                tarImageWrapper.classList.add('rotated-90')
+                return
+            }
+           if(tarImageWrapper.classList.toString().includes('90')){
+                tarImageWrapper.classList.remove('rotated-90')
+                tarImageWrapper.classList.add('rotated-180')
+                return
+            }
+          if(tarImageWrapper.classList.toString().includes('180')){
+                tarImageWrapper.classList.remove('rotated-180')
+                tarImageWrapper.classList.add('rotated-270')
+                return
+            }
+         if(tarImageWrapper.classList.toString().includes('270')){
+                tarImageWrapper.classList.remove('rotated-270')
+                return
+            }
+        }
+
+
+        if(!videoPlayer.classList.toString().includes('rotated')){
+            videoPlayer.classList.add('rotated-90')
+            return
+        }
+        if(videoPlayer.classList.toString().includes('90')){
+            videoPlayer.classList.remove('rotated-90')
+            videoPlayer.classList.add('rotated-180')
+            return
+        }
+        if(videoPlayer.classList.toString().includes('180')){
+            videoPlayer.classList.remove('rotated-180')
+            videoPlayer.classList.add('rotated-270')
+            return
+        }
+        if(videoPlayer.classList.toString().includes('270')){
+            videoPlayer.classList.remove('rotated-270')
+        }
+    }
+
+
+    function RotateVideoCCW(){
+        if(tarVideo){
+            let tarImageWrapper = document.getElementById('tarImageWrapper')
+            if(!tarImageWrapper.classList.toString().includes('rotated')){
+                tarImageWrapper.classList.add('rotated-270')
+                return
+            }
+           if(tarImageWrapper.classList.toString().includes('270')){
+                tarImageWrapper.classList.remove('rotated-270')
+                tarImageWrapper.classList.add('rotated-180')
+                return
+            }
+          if(tarImageWrapper.classList.toString().includes('180')){
+                tarImageWrapper.classList.remove('rotated-180')
+                tarImageWrapper.classList.add('rotated-90')
+                return
+            }
+         if(tarImageWrapper.classList.toString().includes('90')){
+                tarImageWrapper.classList.remove('rotated-90')
+                return
+            }
+        }
+
+        if(!videoPlayer.classList.toString().includes('rotated')){
+            videoPlayer.classList.add('rotated-270')
+            return
+        }
+        if(videoPlayer.classList.toString().includes('270')){
+            videoPlayer.classList.remove('rotated-270')
+            videoPlayer.classList.add('rotated-180')
+            return
+        }
+        if(videoPlayer.classList.toString().includes('180')){
+            videoPlayer.classList.remove('rotated-180')
+            videoPlayer.classList.add('rotated-90')
+            return
+        }
+        if(videoPlayer.classList.toString().includes('90')){
+            videoPlayer.classList.remove('rotated-90')
+        }
+    }
+
+    function CreateQuickJumpContextMenu(paramPath){
+        contextMenu.style.top = event.clientY;
+        contextMenu.style.left = event.clientX;
+        contextMenu.style.display = 'block';
+        document.getElementById("log-line-context-menu").style.display = 'none'
+        document.getElementById("slider-context-menu").style.display = 'none'
+        document.getElementById('quickjump-context-menu').style.display = 'block'
+    }
+
+    function RemoveQuickJump(){
+        $.ajax({
+            type: "POST",
+            url: "/carhax/remove_quickjump",
+            contentType: "application/json",
+            data: JSON.stringify({path: ctxParamQuickjumpLoc}),
+            success: function(data){
+                console.log(data)
+                if(data['status']){
+                    ctxQuickJumpNode.remove()
+                } else{
+                    console.log("ERROR")
+                }
+            }
+        })
+    }
+
+    {#FREQ ANALYSIS FUNCTIONS#}
+    function FreqAnalysis(newCheck) {
+
+        $("#freqTableBody").empty()
+        if(newCheck){
+            gatheredData = undefined
+        }
+        let num = parseInt(freqNum.value)
+        let startingTimestamp = document.getElementById('freqStartingTimestamp').value
+        let endingTimestamp = document.getElementById('freqEndingTimestamp').value
+
+        if(num <= 0 || isNaN(num)){return false}
+        $.ajax({
+            type: "GET",
+            url: "/carhax/analyze_freq/" + num.toString()+ "/" + startingTimestamp.toString() + "/" + endingTimestamp.toString() + '/' + newCheck,
+            contentType: "application/json",
+            success: function (data) {
+                document.getElementById('checkNextFreq').removeAttribute('disabled')
+                {#console.log(data)#}
+                gatheredData = data
+                for(let i in data){
+                    let row = freqTableBody.insertRow(0)
+                    let cellNetwork = row.insertCell(0)
+                    let cellArb = row.insertCell(1)
+                    let dataInfo = row.insertCell(2)
+                    let TSInfo = row.insertCell(3)
+
+                    cellNetwork.innerHTML = data[i]['can']
+                    cellArb.innerHTML = data[i]['arb']
+
+                    for(let k in data[i]['data']){
+                        {#console.log(data[i]['data'][k])#}
+                        dataInfo.innerHTML +=  "Byte" + (parseInt(k)+1).toString() + ": <b>" + Object.values(data[i]['data'][k]).toString() + "</b>  &nbsp&nbsp&nbsp"
+                    }
+
+                  for(let k in data[i]['timestamps']){
+                        {#console.log(data[i]['timestamps'][k])#}
+                        TSInfo.innerHTML +=   "<b>" + Object.values(data[i]['timestamps'][k]).toString() + "</b>"
+                    }
+                    {#console.log(data[i])#}
+                }
+            }
+        })
+    }
+
+
+    function EnableFreqIsolate(){
+        freqSelectedArbs = []
+        freqSelectedTimestamps = []
+        freqHighlightEnabled = false
+        freqIsolateEnabled = true
+        for(k in gatheredData){
+            for(let t in Object.values(gatheredData[k]['timestamps'])){
+                if(gatheredData[k]['timestamps'][t]){
+                    for(let i = 0; i < gatheredData[k]['timestamps'][t].length; i++){
+                        if(!freqSelectedTimestamps.includes(gatheredData[k]['timestamps'][t][i])){
+                            freqSelectedTimestamps.push(gatheredData[k]['timestamps'][t][i])
+                        }
+                    }
+                }
+            }
+            freqSelectedArbs.push(k)
+        }
+        {#$('#freqModal').modal('hide');#}
+    }
+
+    function EnableFreqHighlight(){
+        freqSelectedArbs = []
+        freqSelectedTimestamps = []
+        freqHighlightEnabled = true;
+        freqIsolateEnabled = false;
+        for(let k in gatheredData){
+            for(let t in Object.values(gatheredData[k]['timestamps'])){
+                if(gatheredData[k]['timestamps'][t]){
+                    for(let i = 0; i < gatheredData[k]['timestamps'][t].length; i++){
+                        if(!freqSelectedTimestamps.includes(gatheredData[k]['timestamps'][t][i])){
+                            freqSelectedTimestamps.push(gatheredData[k]['timestamps'][t][i])
+                        }
+                    }
+                }
+            }
+            freqSelectedArbs.push(k)
+        }
+        {#$('#freqModal').modal('hide');#}
+    }
+
+    function FlashTimestamp(){
+        playbackTimestamp.removeAttribute('class')
+        setTimeout(function(){
+            playbackTimestamp.classList.add('timestamp-flash')
+        },10)
+    }
+
+    function HideUnchanged(){
+        videoSelection = document.getElementById("video_selection").value
+        let button = document.getElementById('staticValuesButton')
+        if(ucFilter){
+            ucFilter = false
+            ucSelectedArbs  = []
+            button.classList.remove('btn-dark')
+            button.classList.add('btn-light')
+            button.innerHTML = '<i class="fad fa-eye"></i> Static Values: <b>Shown</b>'
+            {#if(!tarVideo){return}#}
+
+        }
+      $.ajax({
+        type: "GET",
+        url: "/carhax/get_unchanged",
+        contentType: "application/json",
+        success: function (data) {
+            console.log(videoSelection.toString())
+            $("#loadingModal").modal('hide')
+            if(tarVideo){
+                setTimeout(function(){
+                    UnpackTarVideo(videoSelection.toString())
+                }, 500)
+
+            }
+            ucSelectedArbs = JSON.parse(data)
+            ucFilter = true
+            button.classList.remove('btn-light')
+            button.classList.add('btn-dark')
+            button.innerHTML = '<i class="far fa-eye-slash"></i> Static Values: <b>Hidden</b>'
+            for(let i = 0; i < ucSelectedArbs.length; i++){
+                if(document.getElementById(ucSelectedArbs[i])){
+
+                    document.getElementById(ucSelectedArbs[i]).remove()
+                }
+            }
+        }})
+    }
+
+    function SuppressHighlighting(){
+        if(suppressHighlighting){
+            suppressHighlighting = false
+            document.getElementById('suppressHighlightingButton').innerHTML = '<i class="fas fa-ban"></i> Suppress Highlighting: <b>Off</b></button>'
+        } else {
+            suppressHighlighting = true
+            document.getElementById('suppressHighlightingButton').innerHTML = '<i class="fas fa-ban"></i> Suppress Highlighting: <b>On</b></button>'
+        }
+    }
+
+    {#----------Log Offset----------#}
+    function UpdateLogOffset(){
+        if(logOffsetChanging){
+           setTimeout(function(){
+                logOffsetDisplay.innerText = logOffsetSlider.value
+            }, 100)
+        }
+    }
+
+    function ReadyLogOffset(){
+        logOffsetChanging = true
+    }
+
+    function FinishLogOffset(){
+        logOffsetChanging = false
+        logOffsetAmount = parseFloat(logOffsetSlider.value)
+    }
+
+    function ResetLogOffset(){
+        logOffsetAmount = 0
+        logOffsetDisplay.innerText = 0.0
+        logOffsetSlider.value = 0;
+    }
+
+
+    // Reset Highlighting
+    function ResetHighlighting(){
+       let all_data_cells = document.querySelectorAll('[class*="-byte-"]')
+       for(let i = 0; i < all_data_cells.length; i ++){
+           all_data_cells[i].className = 'steady-byte-display-l1'
+       }
+    }
+
+
+
+    // TAR VIDEO STUFF
+
+    function UnpackTarVideo(videoFile){
+        $("#loadingModal").modal('hide')
+        $("#fileUnpackingModal").modal('show')
+        tarVideoSection.style.display = 'block'
+        tarImageFolder = ""
+        tarImageList = []
+        setTimeout(function(){
+           UnpackingUpdate()
+        },1000)
+         $.ajax({
+             type: "GET",
+             url: "/carhax/unpack_tar/" + videoFile.toString(),
+             contentType: "application/json",
+             success: function (data) {
+                tarImageFolder = '/static' + JSON.parse(data)['folder'].split("/static")[1]
+                tarImageList = JSON.parse(data)['file_list']
+                tarImagePlayback.src = tarImageFolder + "/" + tarImageList[0]
+                tarVideoSlider.value = 0
+
+             }
+         })
+    }
+
+    function UnpackingUpdate(){
+        let unpackedBar = document.getElementById('unpackingProgress')
+        let unpackPercent = document.getElementById('unpackingReadout')
+        unpacking = true
+        checkInterval = setInterval(function(){
+            if(!unpacking){
+                console.log("unpacking finished")
+                $("#fileUnpackingModal").modal('hide')
+                clearInterval(checkInterval)
+            }
+             $.ajax({
+                 type: "GET",
+                 url: "/carhax/unpack_progress",
+                 contentType: "application/json",
+                 success: function (data) {
+                    let incData = JSON.parse(data)
+                     let total = incData['files_to_unpack']
+                     let finished = incData['files_unpacked']
+                     console.log(total)
+                     console.log(finished)
+                     let percent = ((finished/total)*100).toFixed()
+                     if(total === 1 || finished === total){
+                         unpacking = false
+                     }
+                    console.log(percent)
+                    unpackedBar.style.width = percent.toString() +"%"
+                     unpackPercent.innerText = percent + " %"
+
+                 }
+             })
+        }, 1000)
+
+    }
+
+
+// GRAPH MODAL STUFF
+
+    const graphData = {
+        datasets: [{
+          label: 'Numbers',
+          backgroundColor: 'rgb(255, 99, 132)',
+          borderColor: 'rgb(255, 99, 132)',
+          data: [],
+        }]
+    }
+
+      const config = {
+        type: 'line',
+        data: graphData,
+        options: {
+            animation: {
+                duration: 0
+            }
+        }
+      };
+
+      const graphChart = new Chart(
+        document.getElementById('graphChart'),
+        config
+        );
+
+    function GraphClosed(){
+        console.log(graphChart)
+        $("#graphingModal").modal('hide')
+        $('.modal-backdrop').add();
+        graphOpen = false
+        graphChart.data.datasets[0]['data'] = []
+        graphChart.data.labels = []
+    }
+
+    function OpenRowGraph() {
+
+        $("#graphingModal").modal('show')
+$('.modal-backdrop').remove();
+
+        let selectedRow = graphSelectedRow.parentElement
+        for (var i = 0; i < selectedRow.children.length; i++) {
+            if (selectedRow.children[i].id.includes('network')) {
+                graphSelectedNetwork = selectedRow.children[i].innerText
+            }
+            if (selectedRow.children[i].id.includes('arb')) {
+                graphSelectedArb = selectedRow.children[i].innerText
+            }
+            if (selectedRow.children[i].id.includes("byte")) {
+                graphSelectedData.push(selectedRow.children[i].innerText)
+            }
+        }
+
+        for (let k = graphSelectedData.length; k < 8; k++) {
+            graphSelectedData.push("")
+        }
+
+        graphOpen = true
+        document.getElementById('graphNetwork').innerText = graphSelectedNetwork
+        document.getElementById('graphArb').innerText = graphSelectedArb
+        let bitSection = document.getElementById('graphBitSelectionDiv')
+        bitSection.innerHTML = ""
+        let bitCounter = 0
+        for (let k = 0; k < graphSelectedData.length; k++) {
+            document.getElementById('graphByte' + (k).toString()).innerText = graphSelectedData[k]
+            if (graphSelectedData[k] === "") {
+                document.getElementById('graphByte' + (k).toString()).style.display = 'none'
+            } else {
+                document.getElementById('graphByte' + (k).toString()).style.display = 'inline-block'
+            }
+
+            for (let j = 8; j > 0; j--) {
+                let newBitCell = document.createElement('span')
+                newBitCell.classList.add('graphBitCell')
+                {#newBitCell.id = 'byte-' + k + '-bit-' + j.toString();#}
+                newBitCell.id = 'bit-' + bitCounter.toString()
+                bitCounter +=1
+                newBitCell.innerText = 0;
+                newBitCell.onmouseenter = function () {
+                    ToggleGraphBit(newBitCell)
+                }
+                newBitCell.onclick = function () {
+                    ClickBit(newBitCell)
+                }
+                bitSection.appendChild(newBitCell)
+                if(j === 1){
+                    newBitCell.style.marginRight = "10px"
+                }
+            }
+
+            {#let newSpacer = document.createElement('span')#}
+            {#newSpacer.classList.add('graphBitSpacer')#}
+            {#bitSection.appendChild(newSpacer)#}
+        }
+        UpdateBits()
+
+    }
+
+    function UpdateGraphValuesShown(){
+        graphValuesShown = document.getElementById('graphValuesShown').value
+    }
+    function UpdateBits(){
+        let allBits = document.getElementsByClassName('bitCellSelected')
+        let bitList = []
+        for(var i = 0; i < allBits.length; i++){
+            bitList.push(allBits[i])
+        }
+        bitList.reverse()
+        selectedByteTotal = 0
+        allBytes = document.getElementsByClassName('graphByteInfoDisplay')
+        let bitCounter = 0
+        for(let i = 0; i < allBytes.length; i++){
+            let decimal = parseInt(allBytes[i].innerText, 16)
+            let binary = decimal.toString(2).padStart(8, 0).split("")
+            binary.reverse()
+            for(let j = binary.length; j > 0; j--){
+                let bitToUpdate = document.getElementById('bit-' + bitCounter.toString())
+                bitCounter += 1
+                bitToUpdate.innerText = binary[j-1]
+            }
+        }
+
+        let amountToAdd = 0
+        for(let k = 0; k < bitList.length; k++){
+            if(bitList[k].innerHTML == 1){
+                selectedByteTotal += Math.pow(2, amountToAdd)
+            }
+            amountToAdd += 1
+        }
+
+        UpdateChart(graphChart, selectedByteTotal, selectedByteTotal)
+        {#console.log(selectedByteTotal)#}
+    }
+
+    function UpdateChart(chart, label, data) {
+        let chartRef = chart.data.datasets[0]
+        if(chartRef['data'].length > graphValuesShown){
+            chartRef['data'].shift()
+            chart.data.labels.shift()
+        }
+        chart.data.labels.push(label);
+        chart.data.datasets.forEach((dataset) => {
+            dataset.data.push(data);
+        });
+
+        chart.update();
+    }
+
+    function KeepGraphSteady(){
+        let chart = graphChart
+        let chartRef = chart.data.datasets[0]
+        if(chartRef['data'].length === 0){return}
+        chartRef['data'].push(chartRef['data'][chartRef['data'].length-1])
+        chart.data.labels.push(chart.data.labels[chart.data.labels.length-1])
+        if(chartRef['data'].length > graphValuesShown){
+            chartRef['data'].shift()
+            chart.data.labels.shift()
+        }
+        chart.update();
+    }
+    function ProcessGraph(thingToCheck, data){
+        if(thingToCheck == graphSelectedNetwork.toString() + "-" + graphSelectedArb.toString()){
+            for(var i = 0; i < data[3].length; i++){
+                document.getElementById('graphByte' + (i).toString()).innerText = data[3][i]
+            }
+             UpdateBits()
+        }
+            {#KeepGraphSteady()#}
+
+
+    }
+
+
+    let mouseDownBool = false;
+    function ToggleGraphBit(bit){
+        if(mouseDownBool){
+            if(bit.classList.contains('bitCellSelected')){
+                bit.classList.remove('bitCellSelected')
+            } else {
+                bit.classList.add('bitCellSelected')
+            }
+        }
+    }
+
+    function ClickBit(bit){
+        if(bit.classList.contains('bitCellSelected')){
+            bit.classList.remove('bitCellSelected')
+        } else {
+            bit.classList.add('bitCellSelected')
+        }
+    }
+
+    document.body.onmousedown = function(){
+        mouseDownBool = true
+    }
+
+   document.body.onmouseup = function(){
+        mouseDownBool = false
+    }
+
+
+    {#    --------- VIDEO POPOUT -----------#}
+
+    function ToggleVideoPopout(){
+        if(videoDocked){
+            actualVideoSection.classList.add('video-pop-out')
+            videoDocked = false
+        } else {
+            actualVideoSection.classList.remove("video-pop-out")
+            videoDocked = true
+        }
+    }
+
+    function ReadyVideoMove(){
+        if(!videoDocked && !videoMoveInitiated){
+          videoMoveInitiated = true
+        }
+    }
+
+    function MoveVideo(){
+        if(videoMoveInitiated && mouseDownBool && !videoDocked){
+            let mouseX = event.clientX
+            let mouseY = event.clientY
+
+            let vidOffsetX = actualVideoSection.clientWidth
+            let vidOffsetY = actualVideoSection.clientHeight
+
+            actualVideoSection.style.left = (mouseX - (vidOffsetX/2)).toString() + 'px'
+            actualVideoSection.style.top = (mouseY - (vidOffsetY/2)).toString() + 'px'
+        }
+    }
+
+    function StopVideoMove(){
+        videoMoveInitiated = false
+    }
+
+
+
+
+    {#UPPY DOWNY!!!!#}
+    function CallUppyDowny(type){
+        let timestamp = playbackTimestamp.innerText.replace("(", "").replace(")", "")
+         $.ajax({
+             type: "GET",
+             url: "/carhax/uppy_downy/" + type.toString() + "/" + timestamp,
+             contentType: "application/json",
+             success: function (data) {
+
+             }
+         })
+    }
+
+
+
+
+    {# SCALED VALUE FINDING STUFF #}
+    function PopulateScalersDropdowns(){
+        scalerUnitList.innerHTML = ""
+        document.getElementById('scaleSearchButton').disabled = true
+        for(let i = 0; i < scalerList.length; i++){
+            let newOption = document.createElement('option')
+            newOption.value = scalerList[i]
+            newOption.innerHTML = scalerList[i]
+            scalerUnitList.appendChild(newOption)
+        }
+    }
+
+    function PopulateAllSelects(){
+        document.getElementById('scaleSelectInput').value = null
+        document.getElementById('offsetSelectInput').value = null
+        document.getElementById('widthSelectInput').value = null
+        PopulateScaleSelect()
+        PopulateOffsetSelect()
+        PopulateWidthSelect()
+    }
+    function PopulateScaleSelect(){
+        let scale_list = []
+
+        document.getElementById('scaleSelectList').innerHTML = ""
+        for(let k = 0; k < Object.entries(scalersDict).length; k++){
+            if(document.getElementById('scalerUnitInput').value === Object.entries(scalersDict)[k][0]){
+                for(i = 0; i < Object.entries(scalersDict)[k][1]['scales'].length; i++){
+                    if(!scale_list.includes(Object.entries(scalersDict)[k][1]['scales'][i])){
+                        scale_list.push(Object.entries(scalersDict)[k][1]['scales'][i])
+                        let newOption = document.createElement('option')
+                        newOption.value = Object.entries(scalersDict)[k][1]['scales'][i]
+                        newOption.innerHTML = Object.entries(scalersDict)[k][1]['scales'][i]
+                        document.getElementById('scaleSelectList').appendChild(newOption)
+                    }
+
+                }
+            }
+        }
+    }
+
+    function PopulateOffsetSelect() {
+        let offset_list = []
+        document.getElementById('offsetSelectList').innerHTML = ""
+        for (let k = 0; k < Object.entries(scalersDict).length; k++) {
+            if (document.getElementById('scalerUnitInput').value === Object.entries(scalersDict)[k][0]) {
+                for (i = 0; i < Object.entries(scalersDict)[k][1]['offsets'].length; i++) {
+                    if(!offset_list.includes(Object.entries(scalersDict)[k][1]['offsets'][i])) {
+                        offset_list.push(Object.entries(scalersDict)[k][1]['offsets'][i])
+                        let newOption = document.createElement('option')
+                        newOption.value = Object.entries(scalersDict)[k][1]['offsets'][i]
+                        newOption.innerHTML = Object.entries(scalersDict)[k][1]['offsets'][i]
+                        document.getElementById('offsetSelectList').appendChild(newOption)
+                    }
+                }
+            }
+        }
+    }
+
+    function PopulateWidthSelect(){
+        let width_list = []
+        document.getElementById('widthSelectList').innerHTML = ""
+        for(let k = 0; k < Object.entries(scalersDict).length; k++){
+            if(document.getElementById('scalerUnitInput').value === Object.entries(scalersDict)[k][0]){
+                for(i = 0; i < Object.entries(scalersDict)[k][1]['widths'].length; i++){
+                    if(!width_list.includes(Object.entries(scalersDict)[k][1]['widths'][i])) {
+                        width_list.push(Object.entries(scalersDict)[k][1]['widths'][i])
+                        let newOption = document.createElement('option')
+                        newOption.value = Object.entries(scalersDict)[k][1]['widths'][i]
+                        newOption.innerHTML = Object.entries(scalersDict)[k][1]['widths'][i]
+                        document.getElementById('widthSelectList').appendChild(newOption)
+                    }
+                }
+            }
+        }
+        CheckForCompletion(true)
+    }
+
+    function CheckForCompletion(needNew){
+        let vi = document.getElementById('scalerValueInput').value
+        let wi = document.getElementById('widthSelectInput').value
+        let oi = document.getElementById('offsetSelectInput').value
+        let si = document.getElementById('scaleSelectInput').value
+
+
+        if(si != "" && oi != "" && vi != ""){
+
+            document.getElementById('scaleFinalValues').innerHTML = ""
+            if(needNew){
+                GetInitialScaledValues()
+                for(let i = 0; i < scaleValueToSearchList.toString().split(",").length; i++){
+                    document.getElementById('scaleFinalValues').innerHTML += '<p>' + scaleValueToSearchList[i] + '</p>'
+                }
+            } else {
+                for(let i = 0; i < scaleValuesToReturn.toString().split(",").length; i++){
+                    document.getElementById('scaleFinalValues').innerHTML += '<p>' + scaleValuesToReturn[i] + '</p>'
+                }
+            }
+            GetMaxDecimal()
+
+        } else {
+            document.getElementById('scaleFinalValues').innerHTML = "Please Enter Values, Scale, and Offset."
+        }
+
+        if(si != "" && oi != "" && wi != "" && vi != ""){
+            document.getElementById('scaleSearchButton').disabled = false
+        } else {
+            document.getElementById('scaleSearchButton').disabled = true
+        }
+    }
+
+
+    function GetInitialScaledValues(){
+        scaleValueToSearchList = []
+        let si = parseFloat(document.getElementById('scaleSelectInput').value)
+        let oi = parseFloat(document.getElementById('offsetSelectInput').value)
+        let values = document.getElementById('scalerValueInput').value.trim().split(",")
+        for(i = 0; i < values.length; i++){
+            let newVal = (parseFloat(values[i]) / si) - oi
+            scaleValueToSearchList.push(newVal.toString())
+        }
+    }
+
+    function UpdateDecimalValues(){
+        let round = document.getElementById('roundDecimalSelect')
+        let drop = document.getElementById('dropDecimalSelect')
+        let shift = document.getElementById('shiftDecimalSelect')
+
+        let newVals = []
+
+        if(shift.checked){
+            let maxDecimal = GetMaxDecimal()
+            if(maxDecimal >= 1){
+               for(let i = 0; i < scaleValueToSearchList.length; i++){
+                    newVals.push(parseFloat(scaleValueToSearchList[i]) * (Math.pow(10, maxDecimal)))
+                }
+            }
+
+
+        }
+
+        if(drop.checked){
+            for(let i = 0; i < scaleValueToSearchList.length; i++){
+                newVals.push(scaleValueToSearchList[i].split(".")[0])
+            }
+        }
+
+        if(round.checked){
+            for(let i = 0; i < scaleValueToSearchList.length; i++){
+                newVals.push(Math.round(parseFloat(scaleValueToSearchList[i])))
+            }
+        }
+
+        scaleValuesToReturn = newVals
+        CheckForCompletion(false)
+
+    }
+
+    function GetMaxDecimal(){
+       let maxDecimal = 0
+            for(let i = 0; i < scaleValueToSearchList.length; i++){
+                try{
+                    let valueDecPlaces = scaleValueToSearchList[i].split(".")[1].length
+                    if(valueDecPlaces > maxDecimal){
+                        maxDecimal = valueDecPlaces
+                    }
+                } catch {}
+
+            }
+        document.getElementById('decimalShiftAmount').innerHTML = maxDecimal.toString()
+        return maxDecimal
+    }
+
+    function ExecuteScaleSearch(){
+        let endVals = scaleValuesToReturn
+        let endWidth = document.getElementById('widthSelectInput').value
+        let endian = ""
+
+        if(document.getElementById('bigEndianSelect').checked){
+            endian = 'big'
+        } else {
+            endian = 'small'
+        }
+
+        let url = "/carhax/scale_value_find/" + endVals.toString() + "/" + endWidth.toString() + "/" + endian
+
+        let scaleTable = document.getElementById('scaleTableBody')
+        scaleTable.innerHTML = ""
+        $.ajax({
+            type: "GET",
+            url: url,
+            contentType: "application/json",
+            success: function(data){
+                let rd = JSON.parse(data)
+                console.log(rd)
+                for(let i = 0; i < rd.length; i++){
+                    let newRow = scaleTable.insertRow(-1)
+                    let network = newRow.insertCell(0)
+                    let arb = newRow.insertCell(1)
+                    let pos = newRow.insertCell(2)
+                    let messages = newRow.insertCell(3)
+                    network.innerHTML = rd[i][0].split("-")[0]
+                    arb.innerHTML = rd[i][0].split('-')[1]
+                    {#let posByte = Math.floor(parseInt(rd[i][0].split('-')[2])/8)#}
+                    {#let posBit =  (parseInt(rd[i][0].split('-')[2]) % 8)#}
+                    pos.innerHTML = "Starting Bit Pos: " + rd[i][0].split('-')[2]
+                    messages.innerHTML = rd[i][1]['lines']
+                }
+            }
+        })
+    }
+
+
+
+
+    </script>
+
+
+
+
+    {%  if folder_to_load %}
+<script>
+    let videoPlayer = document.getElementById("video_player")
+    let video = document.getElementById("video_source")
+    let videoSelection = document.getElementById("video_selection").value
+    let file = "{{ folder_to_load }}" + "/" + videoSelection
+    $(document).ready(function() {
+        video.src = file
+        videoPlayer.load()
+        if(!videoSelection.includes('tar')){
+            tarVideoSection.style.display = 'none'
+        }
+        document.getElementById('checkNextFreq').disbled = true
+        {#$("#graphingModal").modal('show')#}
+    });
+
+
+    function SelectVideo(){
+        if(!playbackPaused){TogglePlayback()}
+        let videoSelection = document.getElementById("video_selection").value
+        {#videoSelection = document.getElementById("video_selection").value#}
+        if(videoSelection.includes('.tar')){
+            if(!tarVideo){
+                mp4VideoSection.style.display = 'none'
+                tarVideo = true
+                document.getElementById('videoOffsetDiv').style.display = 'none'
+            } else {
+                setTimeout(function(){
+                    LoadFile(logSelection.value)
+                }, 1000)
+            }
+
+
+        } else {
+            tarVideo = false
+            console.log(videoSelection)
+            mp4VideoSection.style.display = 'block'
+            tarVideoSection.style.display = 'none'
+            videoTimeSlider.value = 0
+            file = "{{ folder_to_load }}" + "/" + videoSelection
+            video.src = file
+            videoPlayer.load()
+            loopStartSet = false;
+            loopEndSet = false;
+            streamIndex = 0;
+            videoOffset = 0;
+            LoadFile(logSelection.value)
+        }
+        $("#loadingModal").modal('hide')
+        startMarker.style.display = 'none'
+        endMarker.style.display = 'none'
+
+    }
+
+</script>
+{%  endif %}
+
+
+{% endblock %}

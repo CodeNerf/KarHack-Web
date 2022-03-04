@@ -1,0 +1,476 @@
+body{
+    background-color: #23343f !important;
+}
+
+.sidebar-item{
+    padding: 3px;
+    margin-bottom: 2px;
+    outline: 2px solid rgba(86, 86, 86, 0.38)
+}
+
+.user-log-in{
+    position: absolute;
+    right: 0;
+    padding: 10px;
+    margin: 10px;
+    margin-right: 150px;
+    color: white;
+    width: auto;
+    text-align: center;
+}
+
+.logout-btn{
+    position: relative;
+    background: #0e414d;
+    color: white;
+    padding: 5px !important;
+    margin: 1px;
+    margin-top: 5px;
+    width: 100px;
+    height: 25px;
+    border: .5px solid white;
+    line-height: 0;
+}
+
+.login-warning {
+    background-color: #9d6c6c;
+    color: white;
+    padding: 10px;
+}
+
+.top_bg{
+    background-color: #536875;
+    width: 100%;
+    position: absolute;
+    z-index: -1;
+    height: 80px;
+}
+
+.cbh-blue{
+    background-color: #162A36 !important;
+    border: none !important;
+    color: white;
+}
+
+.file-explorer{
+    height:75%;
+    background-color: #e0e0e0; !important;
+    align-content: center;
+    border: 3px solid #000000;
+    overflow-y: scroll;
+}
+
+.filepath-header{
+    background-color: #e0e0e0; !important;
+    color: black; !important;
+    padding: 1%; !important;
+    border-bottom: 3px solid black;
+    margin: auto;
+}
+
+
+.filepath-readout{
+    border: 1px solid black;
+    background-color: white;
+    width: 75%;
+    margin-left: 1%;
+    height: 2%;
+    vertical-align: center;
+    margin-top: 0.25%;
+}
+
+.home-button{
+    width: 5%;
+    margin-left: 1%
+}
+
+.back-button{
+    width: 5%;
+    margin-left: 1%
+}
+
+.file-icon{
+    padding: 5px; !important;
+    cursor: pointer;
+    margin: 5px; !important;
+    text-align: center;
+    overflow: hidden;
+    margin-left: 10px;
+}
+
+.video-slider{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 5px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+    margin: 10px;
+}
+
+.video-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #36ba97;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.video-control-options{
+    cursor: pointer;
+    max-width: 75px;
+    background-color: #36ba97;
+    padding-top: 12px;
+    text-align: center;
+    border-radius: 10px;
+    color: white;
+    vertical-align: middle;
+}
+
+.rotated-90{
+    transform: rotateZ(90deg);
+}
+
+.rotated-180{
+    transform: rotateZ(180deg);
+}
+
+.rotated-270{
+    transform: rotateZ(270deg);
+}
+
+
+/*Steady bytes*/
+.steady-byte-display-l1{
+  text-align: center;
+}
+
+.steady-byte-display-l2{
+  text-align: center;
+  background-color: rgba(128, 0, 128, 0.1) !important;
+}
+
+.steady-byte-display-l3{
+  text-align: center;
+  color: white;
+  background-color: rgba(128, 0, 128, 0.34) !important;
+}
+
+.steady-byte-display-l4{
+  text-align: center;
+  color: white;
+  background-color: rgba(128, 0, 128, 0.57) !important;
+}
+
+.steady-byte-display-l5{
+  text-align: center;
+  color: white;
+  background-color: rgba(128, 0, 128, 0.82) !important;
+}
+
+
+/*Up the Bytes*/
+.up-byte-display-l1{
+  text-align: center;
+  background-color: rgba(2, 52, 176, 0.06) !important;
+}
+
+.up-byte-display-l2{
+  text-align: center;
+  background-color: rgba(2, 52, 176, 0.19) !important;
+}
+
+.up-byte-display-l3{
+  text-align: center;
+  color: white;
+  background-color: rgba(2, 52, 176, 0.44) !important;
+}
+
+.up-byte-display-l4{
+  text-align: center;
+  color: white;
+  background-color: rgba(2, 52, 176, 0.79) !important;
+}
+
+.up-byte-display-l5{
+  text-align: center;
+  color: white;
+  background-color: rgb(2, 52, 176) !important;
+}
+
+
+/*Down the bytes*/
+.down-byte-display-l1{
+  text-align: center;
+  background-color: rgba(94, 0, 0, 0.13) !important;
+}
+
+.down-byte-display-l2{
+  text-align: center;
+  background-color: rgba(94, 0, 0, 0.3) !important;
+}
+
+.down-byte-display-l3{
+  text-align: center;
+  color: white;
+  background-color: rgba(94, 0, 0, 0.54) !important;
+}
+
+.down-byte-display-l4{
+  text-align: center;
+  color: white;
+  background-color: rgba(94, 0, 0, 0.78) !important;
+}
+
+.down-byte-display-l5{
+  text-align: center;
+  color: white;
+  background-color: rgb(94, 0, 0) !important;
+}
+
+.super-highlight{
+    background-color: rgba(252, 231, 0, 0.13) !important;
+    box-shadow: 0px 0px 10px 5px rgba(255, 196, 0, 0.56);
+}
+
+.timestamp-flash{
+    animation: flash-timestamp 1s ease 1;
+}
+
+@keyframes flash-timestamp {
+    10%{
+        background-color: green;
+        padding: 5px;
+        color: white;
+    }
+    100%{
+        background-color: rgba(255, 255, 255, 0);
+        color: black;
+        padding: 0;
+    }
+}
+
+.carhax-quickjump{
+    color: white;
+    background-color: #536875;
+    width: 100%;
+    padding: 10px;
+}
+
+.readout-vin-header {
+    padding: 10px;
+    margin: 10px;
+}
+
+div.quick-jump-menu {
+    background-color: #333;
+    white-space: nowrap;
+    overflow-y: scroll;
+    height: 300px;
+}
+
+div.quick-jump-menu a {
+    display: inline-block;
+    color: white;
+    text-align: center;
+    padding: 14px;
+    text-decoration: none;
+}
+
+div.quick-jump-menu a:hover {
+    background-color: #777;
+    cursor: pointer;
+}
+
+.video-control-btn{
+    background-color: #36ba97;
+    padding: 10px;
+    color: white;
+    border-radius: 10px;
+    border: none;
+    font-size: 1.5rem;
+}
+.btn-cbh-disabled{
+    background-color: rgba(67, 121, 106, 0.5) !important;
+    color: rgba(255, 255, 255, 0.54) !important;
+}
+
+.highlighting-button{
+    width: 100%;
+    text-align: left;
+}
+.video-control-checkbox{
+    transform: scale(2);
+}
+
+#slider-context-menu{
+    display: none;
+}
+
+#context-menu {
+    display: none;
+    position: absolute;
+    width: 150px;
+    background: rgba(54, 54, 54, 0.86);
+    color: rgba(255, 255, 255, 0.86);
+    padding: 10px;
+    z-index: 100;
+}
+
+.context-menu-item{
+    padding: 5px;
+}
+
+.context-menu-item:hover{
+    background: rgba(94, 94, 94, 0.84) !important;
+    cursor: pointer;
+}
+
+.marker-cone{
+    display: none;
+    z-index: 99;
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 40px solid #33af8b;
+    border-radius: 50%;
+}
+
+.watermark{
+    pointer-events: none;
+    text-align: center;
+    position: fixed;
+    bottom: 2%;
+    right: 2%;
+    color: rgba(255, 255, 255, 0.27);
+    font-size: smaller;
+}
+
+.btn-disabled{
+    pointer-events: none;
+    opacity: 0.55;
+}
+
+.loading-background{
+    position: fixed;
+    /*left: 50%;*/
+    z-index: 10;
+    display: none;
+}
+
+.video-unique-controls{
+    position: relative;
+}
+
+#videoPopoutButton{
+    position: absolute;
+    color: white;
+    font-size: 1vw;
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    bottom: 0;
+    right: 0;
+    padding: 10px;
+}
+
+.video-pop-out{
+    position: absolute;
+    z-index: 11;
+    background-color: rgba(182, 175, 175, 0.52);
+    width: 25%;
+    /*height: auto;*/
+    box-shadow: 12px 12px 10px 5px rgba(0, 0, 0, 0.36);]
+    padding: 10px;
+    border-radius: 20px;
+}
+
+#offsetOverflow{
+    background-color: #cb3a3a;
+    color: white;
+    padding: 5px;
+    animation: offset-overflow-flash 1s infinite;
+}
+
+@keyframes offset-overflow-flash {
+    0%{
+        background-color: #cb3a3a;
+    }
+    50% {
+    background-color: #3f1414;
+      }
+
+    100%{
+        background-color: #cb3a3a;
+    }
+}
+
+#unpackingReadout{
+    color: #33af8b;
+}
+
+#unpackingTotal{
+    width: 100%;
+    background-color: lightgrey;
+    height: 50px;
+    padding: 2px;
+    border-radius: 10px;
+}
+
+#unpackingProgress{
+    width: 0;
+    height:100%;
+    border-radius: inherit;
+    background-color: #33af8b;
+    z-index: 10;
+}
+
+.graphByteInfoDisplay{
+    text-align: center;
+    border: 1px solid black;
+    padding: 5px;
+    /*margin: 2px;*/
+    background-color: #f1eded;
+    font-size: 2rem;
+    user-select: none;
+    width: 80px;
+}
+
+.graphBitCell{
+    text-align: center;
+    border: 1px solid black;
+    padding: 1px;
+    font-size: 1rem;
+    background-color: lightgrey;
+    /*margin: -2px;*/
+    user-select: none;
+}
+
+.bitCellSelected{
+    background-color: green;
+    color: white
+}
+
+.graphBitSpacer{
+    margin: 10px;
+}
+
+#graphBitSelectionDiv{
+    width: 100%;
+    border: 3px solid grey;
+    padding: 5px;
+    margin: 10px;
+    user-select: none;
+}
+
+#scaleFinalValues{
+    font-weight: bolder;
+}
+
+
